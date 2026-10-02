@@ -1,10 +1,13 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
   const [principal, setPrincipal] = useState(10000);
   const [annualRate, setAnnualRate] = useState(6);
   const [payment, setPayment] = useState(200);
+  const [result, setResult] = useState(null);
+  const [delay, setDelay] = useState(300);
+
   let principalError = null;
   if (principal < 1 || principal > 100000000) {
     principalError = "Principal must be between $1 and $100,000,000";
@@ -18,6 +21,26 @@ function App() {
     paymentError = "Payment must be between $1 and $1,000,000";
   }
 
+  useEffect(() => {
+    if (principalError || annualRateError || paymentError) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetch("http://localhost:3000/api/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ principal, annualRate, payment }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setResult(data);
+        });
+    }, delay);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [principal, annualRate, payment, delay]);
+
   return (
     <>
       <h1>LoanScope</h1>
@@ -26,14 +49,20 @@ function App() {
       <input
         type="number"
         value={principal}
-        onChange={(event) => setPrincipal(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(300);
+          setPrincipal(Number(event.target.value));
+        }}
       />
       <input
         type="range"
         value={principal}
         min={1}
         max={100000000}
-        onChange={(event) => setPrincipal(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(0);
+          setPrincipal(Number(event.target.value));
+        }}
       />
       <p>Principal: {principal}</p>
       {principalError && <p>{principalError}</p>}
@@ -43,7 +72,10 @@ function App() {
         type="number"
         value={annualRate}
         step={0.01}
-        onChange={(event) => setAnnualRate(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(300);
+          setAnnualRate(Number(event.target.value));
+        }}
       />
       <input
         type="range"
@@ -51,7 +83,10 @@ function App() {
         min={0}
         max={40}
         step={0.01}
-        onChange={(event) => setAnnualRate(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(0);
+          setAnnualRate(Number(event.target.value));
+        }}
       />
       <p>AnnualRate: {annualRate}</p>
       {annualRateError && <p>{annualRateError}</p>}
@@ -60,17 +95,27 @@ function App() {
       <input
         type="number"
         value={payment}
-        onChange={(event) => setPayment(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(300);
+          setPayment(Number(event.target.value));
+        }}
       />
       <input
         type="range"
         value={payment}
         min={1}
         max={1000000}
-        onChange={(event) => setPayment(Number(event.target.value))}
+        onChange={(event) => {
+          setDelay(0);
+          setPayment(Number(event.target.value));
+        }}
       />
       <p>Payment: {payment}</p>
       {paymentError && <p>{paymentError}</p>}
+
+      {result && result.error && <p>{result.error}</p>}
+      {result && result.warning && <p>{result.warning}</p>}
+      {result && !result.error && <p>Months: {result.month}</p>}
     </>
   );
 }
