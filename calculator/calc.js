@@ -1,6 +1,9 @@
 export function calcSchedule(principal, annualRate, payment) {
+  // Amortization calculator.
+  // dollars to cents
   let principalCents = principal * 100;
   let paymentCents = payment * 100;
+  // yearly rate to monthly
   let monthlyRate = annualRate / 100 / 12;
 
   let balance = principalCents;
@@ -8,22 +11,23 @@ export function calcSchedule(principal, annualRate, payment) {
 
   let cumulativeInterest = 0;
   let cumulativePrincipal = 0;
-
+  // holds every month's row
   const schedule = [];
 
   const firstInterest = Math.round(balance * monthlyRate);
+  // payment too low = never paid off
   if (paymentCents <= firstInterest) {
     return {
       error:
         "Payment is too low to cover interest therefore loan will never be paid",
     };
   }
-
+  // one month per loop, max 1200
   while (balance > 0 && month < 1200) {
     const interest = Math.round(balance * monthlyRate);
     let principalPaid = paymentCents - interest;
     let monthlyPayment = paymentCents;
-
+    // last payment is smaller
     if (balance + interest < monthlyPayment) {
       monthlyPayment = balance + interest;
       principalPaid = monthlyPayment - interest;
@@ -42,6 +46,7 @@ export function calcSchedule(principal, annualRate, payment) {
       cumulativePrincipal,
     });
   }
+  // over 100 years warning
   let warning = null;
   if (balance > 0) {
     warning = "Loan will not be paid off until more than a 100 years";
