@@ -115,7 +115,29 @@ function App() {
 
       {result && result.error && <p>{result.error}</p>}
       {result && result.warning && <p>{result.warning}</p>}
-      {result && !result.error && <p>Months: {result.month}</p>}
+      {result && !result.error && (
+        <p>
+          {Math.floor(result.month / 12)} Years and {result.month % 12} Months
+        </p>
+      )}
+      {result && !result.error && (
+        <p>
+          Total Interest:{" "}
+          {(result.totalInterest / 100).toLocaleString(undefined, {
+            style: "currency",
+            currency: "USD",
+          })}
+        </p>
+      )}
+      {result && !result.error && result.payoffDate && (
+        <p>
+          Payoff Date:{" "}
+          {new Date(result.payoffDate).toLocaleDateString(undefined, {
+            month: "long",
+            year: "numeric",
+          })}
+        </p>
+      )}
     </>
   );
 }
